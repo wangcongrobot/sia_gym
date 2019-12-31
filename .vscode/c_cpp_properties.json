@@ -1,0 +1,33 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "",
+        "limitSymbolsToIncludedHeaders": true
+      },
+      "includePath": [
+        "/home/cong/ros_ws/openai_ros_ws/devel/include/**",
+        "/opt/ros/kinetic/include/**",
+        "/home/cong/ros_ws/openai_ros_ws/src/geometry/eigen_conversions/include/**",
+        "/home/cong/ros_ws/openai_ros_ws/src/gazebo_ros_pkgs/gazebo_plugins/include/**",
+        "/home/cong/ros_ws/openai_ros_ws/src/gazebo_ros_pkgs/gazebo_ros/include/**",
+        "/home/cong/ros_ws/openai_ros_ws/src/husky_ros_gym/include/**",
+        "/home/cong/ros_ws/openai_ros_ws/src/gym-husky-ur5/gym_husky_ur5/ros_pkgs/husky_train/include/**",
+        "/home/cong/ros_ws/openai_ros_ws/src/geometry/kdl_conversions/include/**",
+        "/home/cong/ros_ws/openai_ros_ws/src/robotiq_s_model_control/include/**",
+        "/home/cong/ros_ws/openai_ros_ws/src/geometry/tf/include/**",
+        "/home/cong/ros_ws/openai_ros_ws/src/geometry2/tf2/include/**",
+        "/home/cong/ros_ws/openai_ros_ws/src/geometry2/tf2_bullet/include/**",
+        "/home/cong/ros_ws/openai_ros_ws/src/geometry2/tf2_eigen/include/**",
+        "/home/cong/ros_ws/openai_ros_ws/src/geometry2/tf2_geometry_msgs/include/**",
+        "/home/cong/ros_ws/openai_ros_ws/src/geometry2/tf2_kdl/include/**",
+        "/home/cong/ros_ws/openai_ros_ws/src/geometry2/tf2_msgs/include/**",
+        "/home/cong/ros_ws/openai_ros_ws/src/geometry2/tf2_ros/include/**",
+        "/home/cong/ros_ws/openai_ros_ws/src/geometry2/tf2_sensor_msgs/include/**",
+        "/home/cong/ros_ws/openai_ros_ws/src/geometry/tf_conversions/include/**",
+        "/usr/include/**"
+      ],
+      "name": "ROS"
+    }
+  ]
+}
