@@ -21,11 +21,9 @@ import rosmsg, rosservice
 from std_msgs.msg import Float64
 from geometry_msgs.msg import Twist, Pose
 from sensor_msgs.msg import JointState
-from nav_msgs.msg import Odometry
 
 from sia_7f_arm_train.srv import EePose, EePoseRequest, EeRpy, EeRpyRequest, EeTraj, EeTrajRequest, JointTraj, JointTrajRequest, EeDelta, EeDeltaRequest
 
-from robotiq_s_model_articulated_msgs.msg import SModelRobotOutput
 
 class SIA7FARMROS(object):
 
@@ -42,7 +40,6 @@ class SIA7FARMROS(object):
 
         self.debug_print = debug_print
 
-
         # run ROS core if not already running
         self.core = None # roscore
         self.gui = None # RQT
@@ -54,26 +51,15 @@ class SIA7FARMROS(object):
         except rospy.exceptions.ROSException:
             rospy.logwarn('ROS node sia_7f_arm_ros_interface has not been initialized')
 
-        ####### Base Husky
-        # Topics
-        #self.rostopic_base_cmd = '/sia_7f_arm_velocity_controller/cmd_vel' # 
-        #self.rostopic_base_odometry = '/odometry/filtered' # nav_msgs/Odometry
-        #self.rostopic_base_estop = '/estop' # std_msgs/Bool
-
-        # Subscibers
-
-        # Publishers
-        #self.base_ctrl_pub = rospy.Publisher(self.rostopic_base_cmd, Twist, queue_size=1)
-
-        ####### Arm UR5
+        ####### Arm
 
         # Params
         self.arm_joint_names = ["sia_7f_arm_joint1", 
-                          "sia_7f_arm_joint2", 
-                          "sia_7f_arm_joint3", 
-                          "sia_7f_arm_joint4", 
-                          "sia_7f_arm_joint5", 
-                          "sia_7f_arm_gripper"]
+                                "sia_7f_arm_joint2", 
+                                "sia_7f_arm_joint3", 
+                                "sia_7f_arm_joint4", 
+                                "sia_7f_arm_joint5", 
+                                "sia_7f_arm_gripper"]
 
         self.arm_joint_home = [0., 0., 0., 0., 0., 0.]
 
@@ -105,19 +91,19 @@ class SIA7FARMROS(object):
         self.arm_ee_rpy_client = rospy.ServiceProxy('/ee_rpy_srv', EeRpy)
         self.arm_ee_delta_pose_client = rospy.ServiceProxy('/ee_delta_srv', EeDelta)
 
-        ####### Gripper Robotiq 3-finger gripper
+        ####### Gripper
         # Topics
-        self.rostopic_gripper_cmd = 'sia_7f_arm_gripper/SModelRobotOutput'
+        # self.rostopic_gripper_cmd = ''
 
         # Publisher
-        self.gripper_pub_cmd = rospy.Publisher(self.rostopic_gripper_cmd, SModelRobotOutput, queue_size=1)
+        # self.gripper_pub_cmd
 
-        ####### Camera BB8 Stereo camera
 
         ####### Camera RGBD
 
         ####### Target
-        self.target_pose = rospy.Subscriber('/object_target', Pose)
+        self.target_position = [0,0,0]
+        rospy.Subscriber('/object_target', Pose, self.object_callback)
 
 
         ####### Initialization !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!######
@@ -286,107 +272,14 @@ class SIA7FARMROS(object):
 
         return NotImplementedError
 
-    ### Gripper Robotiq 3finger
-    def gripper_gen_cmd(self, char, command):
-        """Update the command according to the character entered by the user."""    
-        # command = SModelRobotOutput()
-        if char == 'a':
-            command = SModelRobotOutput()
-            command.rACT = 1
-            command.rGTO = 1
-            command.rSPA = 255
-            command.rFRA = 150
+    def get_object_position(self):
+        if self.target_position[2] > 0:
+            return self.target_position
+        else:
+            rospy.logerr("No Object Position, Please check the Object")
+            return NotImplementedError
 
-        if char == 'r':
-            command = SModelRobotOutput()
-            command.rACT = 0
-
-        if char == 'c':
-            command.rPRA = 255
-
-        if char == 'o':
-            command.rPRA = 0
-
-        if char == 'b':
-            command.rMOD = 0
-            
-        if char == 'p':
-            command.rMOD = 1
-            
-        if char == 'w':
-            command.rMOD = 2
-            
-        if char == 's':
-            command.rMOD = 3
-
-        #If the command entered is a int, assign this value to rPRA
-        try: 
-            command.rPRA = int(char)
-            if command.rPRA > 255:
-                command.rPRA = 255
-            if command.rPRA < 0:
-                command.rPRA = 0
-        except ValueError:
-            pass                    
-            
-        if char == 'f':
-            command.rSPA += 25
-            if command.rSPA > 255:
-                command.rSPA = 255
-                
-        if char == 'l':
-            command.rSPA -= 25
-            if command.rSPA < 0:
-                command.rSPA = 0
-
-                
-        if char == 'i':
-            command.rFRA += 25
-            if command.rFRA > 255:
-                command.rFRA = 255
-                
-        if char == 'd':
-            command.rFRA -= 25
-            if command.rFRA < 0:
-                command.rFRA = 0
-
-        # print("generated command: ", command)
-        return command
-
-    def gripper_activate(self):
-        command = SModelRobotOutput()
-        command = self.gripper_gen_cmd('a', command)
-        # if not rospy.is_shutdown():
-        self.gripper_pub_cmd.publish(command)
-        # print(command)
-        rospy.sleep(1.0)
-        rospy.logwarn("Gripper Activated")  
-
-    def gripper_reset(self):
-        command = SModelRobotOutput()
-
-        command = self.gripper_gen_cmd('r',command)
-        # if not rospy.is_shutdown():
-        self.gripper_pub_cmd.publish(command)
-        # print(command)
-        rospy.sleep(1.0)
-        rospy.logwarn("Gripper Reset")
-
-    def gripper_open(self):
-        command = SModelRobotOutput()
-        command = self.gripper_gen_cmd('a', command)
-
-        command = self.gripper_gen_cmd('o', command)
-        self.gripper_pub_cmd.publish(command)
-        rospy.sleep(2.0)
-        rospy.logwarn("Gripper Opened")
-
-    def gripper_close(self, gripper):
-        command = SModelRobotOutput()
-        command = self.gripper_gen_cmd('a', command)
-        command = self.gripper_gen_cmd('c', command)
-            # if not rospy.is_shutdown():
-        self.gripper_pub_cmd.publish(command)
-        rospy.sleep(2.0)
-        rospy.logwarn("Gripper Closed")
-
+    def object_callback(self, msg):
+        self.target_position[0] = msg.position.x
+        self.target_position[1] = msg.position.y
+        self.target_position[2] = msg.position.z
